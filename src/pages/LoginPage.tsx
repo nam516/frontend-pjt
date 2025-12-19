@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { login } from "../api/auth";
+import { getMe } from "../api/user";
 
 export default function LoginPage() {
     const [loginId, setLoginId] = useState("");
@@ -60,6 +61,22 @@ export default function LoginPage() {
                     로그인
                 </button>
             </form>
+            <button
+                type="button"
+                onClick={async () => {
+                    try {
+                        const me = await getMe();
+                        console.log("me =", me);
+                        alert("me 호출 성공! 콘솔 확인");
+                    } catch (e) {
+                        console.error(e);
+                        alert("me 호출 실패 (401이면 토큰/백엔드 확인)");
+                    }
+                }}
+                style={{ padding: 10, fontSize: 14 }}
+            >
+                /api/me 테스트
+            </button>
         </div>
     );
 }
