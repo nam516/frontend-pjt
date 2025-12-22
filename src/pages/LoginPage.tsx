@@ -1,82 +1,74 @@
 import { useState } from "react";
-import { login } from "../api/auth";
-import { getMe } from "../api/user";
+import { useNavigate } from "react-router-dom";
+import { login, me } from "../api/auth";
+import { tokenStore } from "../store/auth";
 
 export default function LoginPage() {
+    const nav = useNavigate();
     const [loginId, setLoginId] = useState("");
     const [password, setPassword] = useState("");
+    const [msg, setMsg] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setMsg(null);
+        setLoading(true);
 
         try {
-            const data = await login({
-                loginId,
-                password,
-            });
+            // 1) 로그인 요청 -> 토큰 받기
+            const tokens = await login({ loginId, password });
 
-            localStorage.setItem("accessToken", data.accessToken);
-            localStorage.setItem("refreshToken", data.refreshToken);
+            // 2) 토큰 저장
+            tokenStore.setAccessToken(tokens.accessToken);
+            tokenStore.setRefreshToken(tokens.refreshToken);
 
-            console.log("로그인 성공");
-            console.log("accessToken =", data.accessToken);
-            console.log("refreshToken =", data.refreshToken);
-
-            alert("로그인 성공!");
-        } catch (error) {
-            console.error(error);
-            alert("로그인 실패 (아이디/비밀번호 확인)");
+            // 3) 저장된 access token으로 /me 확인
+            const data = await me();
+            if (data.authenticated) {
+                nav("/", { replace: true });
+            } else {
+                tokenStore.clear();
+                setMsg("인증 확인 실패");
+            }
+        } catch (err: any) {
+            tokenStore.clear();
+            setMsg("로그인 실패 (아이디/비밀번호 확인)");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div style={{ maxWidth: 360, margin: "80px auto", padding: 16 }}>
-            <h1 style={{ fontSize: 24, marginBottom: 16 }}>로그인</h1>
+        <div style={{ padding: 24, maxWidth: 360 }}>
+            <h2>Login</h2>
 
-            <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
-                <label style={{ display: "grid", gap: 6 }}>
-                    <span>아이디</span>
+            <form onSubmit={handleSubmit}>
+                <div style={{ marginBottom: 12 }}>
                     <input
+                        placeholder="loginId"
                         value={loginId}
                         onChange={(e) => setLoginId(e.target.value)}
-                        placeholder="loginId"
-                        autoComplete="username"
-                        style={{ padding: 10, fontSize: 14 }}
+                        style={{ width: "100%", padding: 10 }}
                     />
-                </label>
+                </div>
 
-                <label style={{ display: "grid", gap: 6 }}>
-                    <span>비밀번호</span>
+                <div style={{ marginBottom: 12 }}>
                     <input
+                        placeholder="password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="password"
-                        autoComplete="current-password"
-                        style={{ padding: 10, fontSize: 14 }}
+                        style={{ width: "100%", padding: 10 }}
                     />
-                </label>
+                </div>
 
-                <button type="submit" style={{ padding: 10, fontSize: 14 }}>
-                    로그인
+                <button disabled={loading} style={{ width: "100%", padding: 10 }}>
+                    {loading ? "Logging in..." : "Login"}
                 </button>
             </form>
-            <button
-                type="button"
-                onClick={async () => {
-                    try {
-                        const me = await getMe();
-                        console.log("me =", me);
-                        alert("me 호출 성공! 콘솔 확인");
-                    } catch (e) {
-                        console.error(e);
-                        alert("me 호출 실패 (401이면 토큰/백엔드 확인)");
-                    }
-                }}
-                style={{ padding: 10, fontSize: 14 }}
-            >
-                /api/me 테스트
-            </button>
+
+            {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
         </div>
     );
 }

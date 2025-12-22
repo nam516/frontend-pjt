@@ -8,6 +8,7 @@ export const api = axios.create({
     },
 });
 
+// 요청 인터셉터: access token 자동 첨부
 api.interceptors.request.use((config) => {
     const token = tokenStore.getAccessToken();
     if (token) {
