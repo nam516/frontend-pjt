@@ -1,25 +1,33 @@
-import { api } from "./client";
+import { api } from "./axios";
+import {tokenStore} from "../store/auth.ts";
 
-/**
- * 로그인 요청 타입
- */
 export type LoginRequest = {
     loginId: string;
     password: string;
 };
 
-/**
- * 로그인 응답 타입
- */
-export type LoginResponse = {
+export type TokenResponse = {
     accessToken: string;
     refreshToken: string;
 };
 
-/**
- * 로그인 API 호출
- */
-export async function login(request: LoginRequest): Promise<LoginResponse> {
-    const response = await api.post<LoginResponse>("/auth/login", request);
-    return response.data;
+export type MeResponse =
+    | { authenticated: false }
+    | { authenticated: true; userId: string };
+
+export async function login(req: LoginRequest) {
+    const res = await api.post<TokenResponse>("/auth/login", req);
+    return res.data;
+}
+
+export async function me() {
+    const res = await api.get<MeResponse>("/auth/api/me");
+    return res.data;
+}
+
+export async function logout() {
+    const refreshToken = tokenStore.getRefreshToken();
+    await api.post("/auth/logout", {
+        refreshToken,
+    });
 }
