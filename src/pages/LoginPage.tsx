@@ -1,74 +1,83 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, me } from "../api/auth";
-import { tokenStore } from "../store/auth";
+import "./LoginPage.css";
+import { login } from "../api/authApi";
+import { token } from "../auth/token";
+
+type Provider = "google" | "kakao" | "naver" | "apple";
 
 export default function LoginPage() {
     const nav = useNavigate();
     const [loginId, setLoginId] = useState("");
     const [password, setPassword] = useState("");
-    const [msg, setMsg] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const API_BASE = useMemo(
+        () => (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080").replace(/\/$/, ""),
+        []
+    );
+
+    const onLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setMsg(null);
-        setLoading(true);
+        setError(null);
 
         try {
-            // 1) 로그인 요청 -> 토큰 받기
-            const tokens = await login({ loginId, password });
-
-            // 2) 토큰 저장
-            tokenStore.setAccessToken(tokens.accessToken);
-            tokenStore.setRefreshToken(tokens.refreshToken);
-
-            // 3) 저장된 access token으로 /me 확인
-            const data = await me();
-            if (data.authenticated) {
-                nav("/", { replace: true });
-            } else {
-                tokenStore.clear();
-                setMsg("인증 확인 실패");
-            }
-        } catch (err: any) {
-            tokenStore.clear();
-            setMsg("로그인 실패 (아이디/비밀번호 확인)");
+            setLoading(true);
+            const res = await login({ loginId, password });
+            token.set(res.accessToken, res.refreshToken);
+            nav("/", { replace: true });
+        } catch {
+            setError("아이디 또는 비밀번호가 올바르지 않습니다.");
         } finally {
             setLoading(false);
         }
     };
 
+    const onSnsLogin = (provider: Provider) => {
+        // Spring Security OAuth2 기본 진입점
+        window.location.href = `${API_BASE}/oauth2/authorization/${provider}`;
+    };
+
     return (
-        <div style={{ padding: 24, maxWidth: 360 }}>
-            <h2>Login</h2>
+        <div className="login-page">
+            <form className="login-card" onSubmit={onLogin}>
+                <h1>로그인</h1>
 
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: 12 }}>
-                    <input
-                        placeholder="loginId"
-                        value={loginId}
-                        onChange={(e) => setLoginId(e.target.value)}
-                        style={{ width: "100%", padding: 10 }}
-                    />
-                </div>
+                <input
+                    placeholder="아이디"
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value)}
+                />
 
-                <div style={{ marginBottom: 12 }}>
-                    <input
-                        placeholder="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        style={{ width: "100%", padding: 10 }}
-                    />
-                </div>
+                <input
+                    placeholder="비밀번호"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
 
-                <button disabled={loading} style={{ width: "100%", padding: 10 }}>
-                    {loading ? "Logging in..." : "Login"}
+                <button disabled={loading}>
+                    {loading ? "로그인 중..." : "일반 로그인"}
+                </button>
+
+                {error && <p className="error">{error}</p>}
+
+                <div className="divider">또는</div>
+
+                <button type="button" onClick={() => onSnsLogin("google")}>
+                    Google로 로그인
+                </button>
+                <button type="button" onClick={() => onSnsLogin("kakao")}>
+                    Kakao로 로그인
+                </button>
+                <button type="button" onClick={() => onSnsLogin("naver")}>
+                    Naver로 로그인
+                </button>
+                <button type="button" onClick={() => onSnsLogin("apple")}>
+                    Apple로 로그인
                 </button>
             </form>
-
-            {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
         </div>
     );
 }
