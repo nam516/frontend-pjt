@@ -1,0 +1,25 @@
+.auth-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 8px 0;
+}
+
+.auth-sub {
+    margin: 0 0 18px 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.sns-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.sns-btn {
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid #d7dbe7;
+    background: white;
+    cursor: pointer;
+    font-weight: 700;
+}
