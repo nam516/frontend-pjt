@@ -1,0 +1,54 @@
+:root {
+    /* Colors */
+    --c-bg: #f6f7fb;
+    --c-surface: rgba(255, 255, 255, 0.92);
+    --c-border: rgba(15, 23, 42, 0.10);
+
+    --c-text: #0f172a;
+    --c-muted: #64748b;
+
+    --c-primary: #0f172a;
+    --c-primary-hover: #111c33;
+
+    /* SNS */
+    --c-google-bg: #ffffff;
+    --c-google-border: rgba(15, 23, 42, 0.14);
+
+    --c-kakao-bg: #fee500;
+    --c-kakao-text: #191600;
+
+    --c-naver-bg: #03c75a;
+
+    --c-apple-bg: #111111;
+
+    /* Error */
+    --c-error-text: #e11d48;
+    --c-error-bg: rgba(244, 63, 94, 0.10);
+    --c-error-border: rgba(244, 63, 94, 0.25);
+
+    /* Radius / Shadow */
+    --radius-card: 22px;
+    --radius: 14px;
+
+    --shadow: 0 20px 60px rgba(2, 6, 23, 0.12);
+    --shadow-soft: 0 10px 30px rgba(2, 6, 23, 0.08);
+
+    /* Focus */
+    --focus: rgba(37, 99, 235, 0.25);
+
+    /* Spacing */
+    --sp-1: 8px;
+    --sp-2: 12px;
+    --sp-3: 16px;
+    --sp-4: 20px;
+    --sp-5: 24px;
+
+    /* Typography */
+    --fs-sm: 14px;
+    --fs-xs: 12px;
+    --fs-lg: 22px;
+
+    --fw-regular: 500;
+    --fw-bold: 700;
+    --fw-black: 800;
+}

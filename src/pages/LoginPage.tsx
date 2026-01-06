@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css";
 import { login } from "../api/authApi";
 import { token } from "../auth/token";
 
@@ -35,49 +34,58 @@ export default function LoginPage() {
     };
 
     const onSnsLogin = (provider: Provider) => {
-        // Spring Security OAuth2 기본 진입점
         window.location.href = `${API_BASE}/oauth2/authorization/${provider}`;
     };
 
     return (
-        <div className="login-page">
-            <form className="login-card" onSubmit={onLogin}>
-                <h1>로그인</h1>
+        <div className="page">
+            <div className="container-sm">
+                <form className="card card--topbar" onSubmit={onLogin}>
+                    <h1 className="title">로그인</h1>
 
-                <input
-                    placeholder="아이디"
-                    value={loginId}
-                    onChange={(e) => setLoginId(e.target.value)}
-                />
+                    <div className="stack">
+                        <input
+                            className="input"
+                            placeholder="아이디"
+                            value={loginId}
+                            onChange={(e) => setLoginId(e.target.value)}
+                            autoComplete="username"
+                        />
 
-                <input
-                    placeholder="비밀번호"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                        <input
+                            className="input"
+                            placeholder="비밀번호"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="current-password"
+                        />
 
-                <button disabled={loading}>
-                    {loading ? "로그인 중..." : "일반 로그인"}
-                </button>
+                        <button className="btn btn--primary" disabled={loading}>
+                            {loading ? "로그인 중..." : "일반 로그인"}
+                        </button>
 
-                {error && <p className="error">{error}</p>}
+                        {error && <div className="alert-error">{error}</div>}
+                    </div>
 
-                <div className="divider">또는</div>
+                    <div className="divider">또는</div>
 
-                <button type="button" onClick={() => onSnsLogin("google")}>
-                    Google로 로그인
-                </button>
-                <button type="button" onClick={() => onSnsLogin("kakao")}>
-                    Kakao로 로그인
-                </button>
-                <button type="button" onClick={() => onSnsLogin("naver")}>
-                    Naver로 로그인
-                </button>
-                <button type="button" onClick={() => onSnsLogin("apple")}>
-                    Apple로 로그인
-                </button>
-            </form>
+                    <div className="stack">
+                        <button type="button" className="btn btn--google" disabled onClick={() => onSnsLogin("google")}>
+                            Google로 로그인
+                        </button>
+                        <button type="button" className="btn btn--kakao" onClick={() => onSnsLogin("kakao")}>
+                            Kakao로 로그인
+                        </button>
+                        <button type="button" className="btn btn--naver"  onClick={() => onSnsLogin("naver")}>
+                            Naver로 로그인
+                        </button>
+                        <button type="button" className="btn btn--apple" disabled onClick={() => onSnsLogin("apple")}>
+                            Apple로 로그인
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }
