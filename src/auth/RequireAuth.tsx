@@ -1,16 +1,16 @@
-// src/auth/RequireAuth.tsx
-import { Navigate } from "react-router-dom";
-import { token } from "./token";
+import { Navigate, useLocation } from "react-router-dom";
+import { tokenStore } from "@/store/auth";
 
 type Props = {
     children: JSX.Element;
 };
 
 export default function RequireAuth({ children }: Props) {
-    const isAuthenticated = !!token.getAccess();
+    const location = useLocation();
+    const accessToken = tokenStore.getAccessToken();
 
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+    if (!accessToken) {
+        return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
     return children;
