@@ -1,4 +1,4 @@
-import { api } from "./axios";
+import api from "./axios";
 import {tokenStore} from "../store/auth.ts";
 
 export type LoginRequest = {
@@ -21,7 +21,7 @@ export async function login(req: LoginRequest) {
 }
 
 export async function me() {
-    const res = await api.get<MeResponse>("/auth/api/me");
+    const res = await api.get<MeResponse>("/api/me");
     return res.data;
 }
 

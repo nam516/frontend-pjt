@@ -3,7 +3,7 @@ import { tokenStore } from "../auth/tokenStore";
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080",
-    withCredentials: true, // refreshToken을 쿠키로 쓸 가능성 대비(서버 설정에 맞춤)
+    withCredentials: true,
 });
 
 // 요청: accessToken 자동 첨부
