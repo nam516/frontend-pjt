@@ -25,7 +25,7 @@ export default function MainPage() {
                     return;
                 }
 
-                setState({ status: "authed", userId: res.userId });
+                setState({ status: "authed", userId: String(res.userId) });
             } catch (err: any) {
                 // 토큰이 만료/잘못되면 여기로 올 확률 높음
                 const msg =
