@@ -3,7 +3,7 @@ import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from "
 import { tokenStore } from "../auth/tokenStore";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080",
+    baseURL: import.meta.env.VITE_API_BASE_URL || "",  // 빈값 = 같은 도메인
     withCredentials: true,
 });
 

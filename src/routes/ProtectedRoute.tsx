@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { me } from "../api/auth";
 import { tokenStore } from "../store/auth";
+import type { ReactElement } from "react";
 
-export default function ProtectedRoute({ children }: { children: JSX.Element }) {
+export default function ProtectedRoute({ children }: { children: ReactElement }) {
     const [loading, setLoading] = useState(true);
     const [ok, setOk] = useState(false);
 
