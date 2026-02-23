@@ -9,13 +9,9 @@ export type LoginRequest = {
 
 export type TokenResponse = {
     accessToken: string;
-    refreshToken: string;
+    // refreshToken은 HttpOnly 쿠키로 전달 → body에 없음
     userId?: number;
     role?: string;
-};
-
-export type RefreshRequest = {
-    refreshToken: string;
 };
 
 export type MeResponse =
@@ -23,7 +19,6 @@ export type MeResponse =
     | { authenticated: true; userId: number; role: string };
 
 // 백엔드 응답 래퍼 타입
-// { success: boolean, data: T, error: { code: string, messageKey: string } | null }
 type ApiResponse<T> = {
     success: boolean;
     data: T;
@@ -40,7 +35,6 @@ export function extractApiErrorMsg(err: unknown, fallback = "요청에 실패했
         | Record<string, unknown>
         | undefined;
 
-    // 백엔드 ApiResponse.error = { code, messageKey }
     const apiErr = data?.error as Record<string, unknown> | undefined;
     if (typeof apiErr?.messageKey === "string") return apiErr.messageKey;
     if (typeof apiErr?.code === "string") return `오류 코드: ${apiErr.code}`;
@@ -51,7 +45,6 @@ export function extractApiErrorMsg(err: unknown, fallback = "요청에 실패했
 }
 
 export async function login(req: LoginRequest): Promise<TokenResponse> {
-    // 백엔드: ApiResponse<TokenResponse> = { success, data: { accessToken, ... }, error }
     const res = await api.post<ApiResponse<TokenResponse>>("/auth/login", req);
 
     if (!res.data.success || !res.data.data) {
@@ -60,8 +53,9 @@ export async function login(req: LoginRequest): Promise<TokenResponse> {
     }
 
     const token = res.data.data;
+
+    // accessToken만 저장 (refreshToken은 HttpOnly 쿠키로 자동 관리)
     tokenStore.setAccessToken(token.accessToken);
-    tokenStore.setRefreshToken(token.refreshToken);
 
     return token;
 }
@@ -77,24 +71,18 @@ export async function me(): Promise<MeResponse> {
 }
 
 export async function logout(): Promise<void> {
-    const refreshToken = tokenStore.getRefreshToken();
     try {
-        if (refreshToken) {
-            await api.post("/auth/logout", { refreshToken });
-        }
+        await api.post("/auth/logout");
     } finally {
-        tokenStore.clear();
+        // accessToken만 삭제 (refreshToken 쿠키는 서버에서 삭제)
+        tokenStore.clearAccessToken();
     }
 }
 
 export async function refresh(): Promise<TokenResponse> {
-    const refreshToken = tokenStore.getRefreshToken();
-    if (!refreshToken) throw new Error("Refresh token is missing");
-
-    const res = await api.post<ApiResponse<TokenResponse>>(
-        "/auth/refresh",
-        { refreshToken } satisfies RefreshRequest
-    );
+    // refreshToken은 쿠키에 있으므로 body 없이 요청
+    // withCredentials: true → 쿠키 자동 전송
+    const res = await api.post<ApiResponse<TokenResponse>>("/auth/refresh");
 
     if (!res.data.success || !res.data.data) {
         throw new Error("Token refresh failed");
@@ -102,7 +90,6 @@ export async function refresh(): Promise<TokenResponse> {
 
     const token = res.data.data;
     tokenStore.setAccessToken(token.accessToken);
-    tokenStore.setRefreshToken(token.refreshToken);
 
     return token;
 }

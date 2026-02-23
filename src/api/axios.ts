@@ -3,8 +3,8 @@ import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from "
 import { tokenStore } from "../store/auth";
 
 const api = axios.create({
-    baseURL: "",  // 빈값 → Vite 프록시가 /auth, /api 등을 8080으로 중계
-    withCredentials: true,
+    baseURL: "",
+    withCredentials: true, // ← HttpOnly 쿠키 자동 전송을 위해 필수
 });
 
 type RetryableConfig = AxiosRequestConfig & { _retry?: boolean };
@@ -14,7 +14,6 @@ api.interceptors.request.use((config) => {
     const token = tokenStore.getAccessToken();
     if (token) {
         config.headers = config.headers ?? {};
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (config.headers as any).Authorization = `Bearer ${token}`;
     }
     return config;
@@ -41,7 +40,6 @@ type ApiResponseToken = {
     success: boolean;
     data: {
         accessToken: string;
-        refreshToken: string;
     };
 };
 
@@ -62,13 +60,11 @@ api.interceptors.response.use(
 
         original._retry = true;
 
-        // 이미 refresh 중 → 큐에 대기
         if (isRefreshing) {
             return new Promise((resolve, reject) => {
                 queue.push((newToken) => {
                     if (!newToken) return reject(error);
                     original.headers = original.headers ?? {};
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     (original.headers as any).Authorization = `Bearer ${newToken}`;
                     resolve(api(original));
                 });
@@ -78,30 +74,19 @@ api.interceptors.response.use(
         isRefreshing = true;
 
         try {
-            const refreshToken = tokenStore.getRefreshToken();
-            if (!refreshToken) throw new Error("No refresh token");
-
-            // api 인스턴스로 호출 → Vite 프록시 정상 통과 (/auth/refresh → 8080)
-            // _retry: true 이므로 인터셉터에서 다시 잡히지 않음
-            const { data } = await api.post<ApiResponseToken>(
-                "/auth/refresh",
-                { refreshToken }
-            );
+            // refreshToken은 HttpOnly 쿠키로 자동 전송 → body 없이 요청
+            const { data } = await api.post<ApiResponseToken>("/auth/refresh");
 
             if (!data.success || !data.data?.accessToken) {
                 throw new Error("Refresh failed");
             }
 
             const newAccessToken = data.data.accessToken;
-            const newRefreshToken = data.data.refreshToken;
-
             tokenStore.setAccessToken(newAccessToken);
-            tokenStore.setRefreshToken(newRefreshToken);
 
             flushQueue(newAccessToken);
 
             original.headers = original.headers ?? {};
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (original.headers as any).Authorization = `Bearer ${newAccessToken}`;
             return api(original);
 

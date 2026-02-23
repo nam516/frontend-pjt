@@ -1,5 +1,5 @@
+// src/store/auth.ts
 const ACCESS_KEY = "accessToken";
-const REFRESH_KEY = "refreshToken";
 
 export const tokenStore = {
     getAccessToken(): string | null {
@@ -8,14 +8,11 @@ export const tokenStore = {
     setAccessToken(token: string) {
         localStorage.setItem(ACCESS_KEY, token);
     },
-    getRefreshToken(): string | null {
-        return localStorage.getItem(REFRESH_KEY);
+    clearAccessToken() {
+        localStorage.removeItem(ACCESS_KEY);
     },
-    setRefreshToken(token: string) {
-        localStorage.setItem(REFRESH_KEY, token);
-    },
+    // 하위 호환성 유지 (기존 코드에서 혹시 호출하는 경우 대비)
     clear() {
         localStorage.removeItem(ACCESS_KEY);
-        localStorage.removeItem(REFRESH_KEY);
     },
 };
