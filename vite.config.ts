@@ -10,9 +10,14 @@ export default defineConfig({
             "@": path.resolve(__dirname, "src"),
         },
     },
-    // vite.config.ts
     server: {
         proxy: {
+            // /auth 추가 (login, refresh, logout, signup 전부 포함)
+            "/auth": {
+                target: "http://localhost:8080",
+                changeOrigin: true,
+                secure: false,
+            },
             // OAuth2 로그인 시작
             "/oauth2/authorization": {
                 target: "http://localhost:8080",

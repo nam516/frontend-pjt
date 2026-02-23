@@ -1,5 +1,6 @@
+// src/pages/MainPage.tsx
 import { useEffect, useState } from "react";
-import { me, logout } from "@/api/auth";
+import { me, logout, extractApiErrorMsg } from "@/api/auth";
 import { tokenStore } from "@/store/auth";
 import "@/styles/components.css";
 
@@ -20,22 +21,15 @@ export default function MainPage() {
 
                 if (!res.authenticated) {
                     setState({ status: "guest" });
-                    // 로그인 페이지로 보내고 싶으면 아래 주석 해제
                     window.location.assign("/login");
                     return;
                 }
 
                 setState({ status: "authed", userId: String(res.userId) });
-            } catch (err: any) {
-                // 토큰이 만료/잘못되면 여기로 올 확률 높음
-                const msg =
-                    err?.response?.data?.message ||
-                    err?.response?.data?.error ||
-                    "인증 정보를 불러오지 못했어요.";
-                setState({ status: "error", message: msg });
-
-                // 강하게 처리하고 싶으면 바로 로그인으로
-                // window.location.assign("/login");
+            } catch (err) {
+                // extractApiErrorMsg: 항상 string 반환 → React error #31 방지
+                const message = extractApiErrorMsg(err, "인증 정보를 불러오지 못했어요.");
+                setState({ status: "error", message });
             }
         })();
     }, []);
@@ -44,19 +38,10 @@ export default function MainPage() {
         try {
             setLoggingOut(true);
             await logout();
-
-            // 로컬 토큰 정리
-            tokenStore.clear?.();
-            // clear가 없으면 아래로 대체
-            tokenStore.setAccessToken?.("");
-            tokenStore.setRefreshToken?.("");
-
+            tokenStore.clear();
             window.location.assign("/login");
-        } catch (err: any) {
-            alert(
-                err?.response?.data?.message ||
-                "로그아웃에 실패했어요. 다시 시도해주세요."
-            );
+        } catch (err) {
+            alert(extractApiErrorMsg(err, "로그아웃에 실패했어요. 다시 시도해주세요."));
         } finally {
             setLoggingOut(false);
         }
@@ -102,7 +87,6 @@ export default function MainPage() {
                         <p style={{ fontSize: 14, color: "#666", marginBottom: 18 }}>
                             현재 로그인 사용자: <b>{state.userId}</b>
                         </p>
-
                         <button
                             className="btn btn--primary"
                             onClick={handleLogout}
@@ -119,6 +103,7 @@ export default function MainPage() {
                         <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
                             오류
                         </h1>
+                        {/* state.message는 항상 string → 안전 */}
                         <p style={{ fontSize: 14, color: "#d12c2c", marginBottom: 14 }}>
                             {state.message}
                         </p>
