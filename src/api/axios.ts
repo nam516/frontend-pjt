@@ -1,32 +1,34 @@
 // src/api/axios.ts
 import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
-import { tokenStore } from "../auth/tokenStore";
+import { tokenStore } from "../store/auth";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "",  // 빈값 = 같은 도메인
-    withCredentials: true,
+    baseURL: "",
+    withCredentials: true, // ← HttpOnly 쿠키 자동 전송을 위해 필수
 });
 
-// ====== types ======
 type RetryableConfig = AxiosRequestConfig & { _retry?: boolean };
 
-// ====== request interceptor: attach access token ======
+// request: access token 첨부
 api.interceptors.request.use((config) => {
     const token = tokenStore.getAccessToken();
     if (token) {
         config.headers = config.headers ?? {};
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (config.headers as any).Authorization = `Bearer ${token}`;
     }
     return config;
 });
 
-// ====== response interceptor: 401 -> refresh -> retry ======
+// response: 401 → refresh → retry
 let isRefreshing = false;
-let queue: Array<(t: string | null) => void> = [];
+let queue: Array<(token: string | null) => void> = [];
 
-function isAuthEndpoint(url: string) {
-    // 401 처리에서 제외할 엔드포인트들 (무한루프 방지)
+function flushQueue(token: string | null) {
+    queue.forEach((cb) => cb(token));
+    queue = [];
+}
+
+function isSkipUrl(url = "") {
     return (
         url.includes("/auth/login") ||
         url.includes("/auth/refresh") ||
@@ -34,27 +36,36 @@ function isAuthEndpoint(url: string) {
     );
 }
 
+type ApiResponseToken = {
+    success: boolean;
+    data: {
+        accessToken: string;
+    };
+};
+
 api.interceptors.response.use(
     (res: AxiosResponse) => res,
     async (error: AxiosError) => {
         const status = error.response?.status;
         const original = error.config as RetryableConfig | undefined;
 
-        if (!original || status !== 401) throw error;
-
-        const url = original.url ?? "";
-        if (original._retry || isAuthEndpoint(url)) throw error;
+        if (
+            status !== 401 ||
+            !original ||
+            original._retry ||
+            isSkipUrl(original.url)
+        ) {
+            return Promise.reject(error);
+        }
 
         original._retry = true;
 
-        // 이미 refresh 중이면 큐에 쌓았다가 토큰 갱신 후 재시도
         if (isRefreshing) {
             return new Promise((resolve, reject) => {
-                queue.push((t) => {
-                    if (!t) return reject(error);
+                queue.push((newToken) => {
+                    if (!newToken) return reject(error);
                     original.headers = original.headers ?? {};
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (original.headers as any).Authorization = `Bearer ${t}`;
+                    (original.headers as any).Authorization = `Bearer ${newToken}`;
                     resolve(api(original));
                 });
             });
@@ -63,29 +74,28 @@ api.interceptors.response.use(
         isRefreshing = true;
 
         try {
-            // 순환 참조 방지: 여기서 api(axios 인스턴스) 말고 "auth" 모듈의 refresh() 호출
-            const { refresh } = await import("./auth");
+            // refreshToken은 HttpOnly 쿠키로 자동 전송 → body 없이 요청
+            const { data } = await api.post<ApiResponseToken>("/auth/refresh");
 
-            const tokenResponse = await refresh(); // 내부에서 refreshToken 꺼내서 /auth/refresh 호출
-            const newAccessToken = tokenResponse.accessToken;
+            if (!data.success || !data.data?.accessToken) {
+                throw new Error("Refresh failed");
+            }
 
+            const newAccessToken = data.data.accessToken;
             tokenStore.setAccessToken(newAccessToken);
 
-            // 대기 중인 요청들 재개
-            queue.forEach((cb) => cb(newAccessToken));
-            queue = [];
+            flushQueue(newAccessToken);
 
-            // 방금 실패했던 원본 요청도 재시도
             original.headers = original.headers ?? {};
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (original.headers as any).Authorization = `Bearer ${newAccessToken}`;
-
             return api(original);
-        } catch (e) {
+
+        } catch (refreshError) {
             tokenStore.clear();
-            queue.forEach((cb) => cb(null));
-            queue = [];
-            throw e;
+            flushQueue(null);
+            window.location.href = "/login";
+            return Promise.reject(refreshError);
+
         } finally {
             isRefreshing = false;
         }

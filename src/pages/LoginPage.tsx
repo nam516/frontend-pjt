@@ -1,11 +1,10 @@
+// src/pages/LoginPage.tsx
 import { useState } from "react";
 import { authProviders } from "@/constants/authProviders";
 import SnsButton from "@/components/auth/SnsButton";
 import "@/styles/components.css";
 import "@/styles/auth.css";
-
-import { login as loginApi } from "@/api/auth"; // 경로 맞춰줘
-import { tokenStore } from "@/store/auth";     // 경로 맞춰줘
+import { login as loginApi, extractApiErrorMsg } from "@/api/auth";
 
 export default function LoginPage() {
     const [loginId, setLoginId] = useState("");
@@ -16,28 +15,16 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg(null);
-
         if (!loginId || !password) return;
 
         try {
             setLoading(true);
-
-            const { accessToken, refreshToken } = await loginApi({
-                loginId,
-                password,
-            })
-
-            tokenStore.setAccessToken(accessToken);
-            tokenStore.setRefreshToken(refreshToken);
-
+            // loginApi 내부에서 tokenStore에 저장까지 해줌
+            await loginApi({ loginId, password });
             window.location.assign("/main");
-        } catch (err: any) {
-            // axios 에러 메시지 처리(대충 안전하게)
-            const msg =
-                err?.response?.data?.message ||
-                err?.response?.data?.error ||
-                "로그인에 실패했어요. 아이디/비밀번호를 확인해주세요.";
-            setErrorMsg(msg);
+        } catch (err) {
+            // extractApiErrorMsg: 항상 string 반환 → React error #31 방지
+            setErrorMsg(extractApiErrorMsg(err, "아이디 또는 비밀번호를 확인해주세요."));
         } finally {
             setLoading(false);
         }
@@ -51,7 +38,6 @@ export default function LoginPage() {
                     <p className="auth-desc">간편 로그인 또는 일반 로그인을 이용하세요.</p>
                 </header>
 
-                {/* 일반 로그인 */}
                 <form className="auth-form" onSubmit={handleLogin}>
                     <div className="form-field">
                         <input
@@ -73,6 +59,7 @@ export default function LoginPage() {
                         />
                     </div>
 
+                    {/* errorMsg는 항상 string | null → 객체 절대 안 들어옴 */}
                     {errorMsg && <p className="form-error">{errorMsg}</p>}
 
                     <button
@@ -84,7 +71,6 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                {/* 회원가입 */}
                 <div className="auth-footer">
                     <span>아직 계정이 없으신가요?</span>
                     <button
@@ -101,7 +87,6 @@ export default function LoginPage() {
                     <span>또는</span>
                 </div>
 
-                {/* SNS 로그인 */}
                 <div className="auth-sns">
                     {authProviders.map((p) => (
                         <SnsButton
