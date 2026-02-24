@@ -15,14 +15,31 @@ export default function MainPage() {
     const [loggingOut, setLoggingOut] = useState(false);
 
     useEffect(() => {
+        // 뒤로가기로 접근했을 때 브라우저 캐시 무력화
+        // bfcache(Back-Forward Cache)에서 복원된 경우 강제로 토큰 재검증
+        const handlePageShow = (e: PageTransitionEvent) => {
+            if (e.persisted) {
+                // bfcache에서 복원된 경우 → 토큰 없으면 바로 로그인으로
+                if (!tokenStore.getAccessToken()) {
+                    window.location.replace("/login");
+                }
+            }
+        };
+
+        window.addEventListener("pageshow", handlePageShow);
+        return () => window.removeEventListener("pageshow", handlePageShow);
+    }, []);
+
+    useEffect(() => {
         (async () => {
-            // accessToken 없으면 바로 리다이렉트 (me() 호출 불필요)
+            // accessToken 없으면 바로 리다이렉트
             if (!tokenStore.getAccessToken()) {
                 window.location.replace("/login");
                 return;
             }
 
             try {
+                // 매번 서버에 실제 인증 상태 확인 (캐시된 화면 방지)
                 const res = await me();
                 if (!res.authenticated) {
                     setState({ status: "guest" });
@@ -31,6 +48,8 @@ export default function MainPage() {
                 setState({ status: "authed", userId: String(res.userId) });
             } catch (err) {
                 const message = extractApiErrorMsg(err, "인증 정보를 불러오지 못했어요.");
+                // 401이면 토큰 만료 → 로그인으로
+                tokenStore.clear();
                 setState({ status: "error", message });
             }
         })();
@@ -41,7 +60,8 @@ export default function MainPage() {
             setLoggingOut(true);
             await logout();
             tokenStore.clear();
-            window.location.assign("/login");
+            // replace로 이동해서 뒤로가기 히스토리에서 main 제거
+            window.location.replace("/login");
         } catch (err) {
             alert(extractApiErrorMsg(err, "로그아웃에 실패했어요. 다시 시도해주세요."));
         } finally {
@@ -105,7 +125,6 @@ export default function MainPage() {
                         <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
                             오류
                         </h1>
-                        {/* state.message는 항상 string → 안전 */}
                         <p style={{ fontSize: 14, color: "#d12c2c", marginBottom: 14 }}>
                             {state.message}
                         </p>
