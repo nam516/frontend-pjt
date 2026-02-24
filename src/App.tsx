@@ -5,10 +5,10 @@ import MainPage from "@/pages/MainPage";
 import SignupPage from "@/pages/SignupPage";
 import OAuth2RedirectPage from "@/pages/OAuth2RedirectPage";
 import RequireAuth from "@/auth/RequireAuth";
-import { token } from "@/auth/token";
+import { tokenStore } from "@/store/auth";
 
 function HomeRedirect() {
-    const isAuthed = !!token.getAccess();
+    const isAuthed = !!tokenStore.getAccessToken();
     return <Navigate to={isAuthed ? "/main" : "/login"} replace />;
 }
 
