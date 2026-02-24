@@ -16,18 +16,20 @@ export default function MainPage() {
 
     useEffect(() => {
         (async () => {
+            // accessToken 없으면 바로 리다이렉트 (me() 호출 불필요)
+            if (!tokenStore.getAccessToken()) {
+                window.location.replace("/login");
+                return;
+            }
+
             try {
                 const res = await me();
-
                 if (!res.authenticated) {
                     setState({ status: "guest" });
-                    window.location.assign("/login");
                     return;
                 }
-
                 setState({ status: "authed", userId: String(res.userId) });
             } catch (err) {
-                // extractApiErrorMsg: 항상 string 반환 → React error #31 방지
                 const message = extractApiErrorMsg(err, "인증 정보를 불러오지 못했어요.");
                 setState({ status: "error", message });
             }
