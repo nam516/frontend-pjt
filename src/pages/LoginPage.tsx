@@ -52,7 +52,7 @@ export default function LoginPage() {
                     <div className="form-field">
                         <input
                             type="password"
-                            placeholder="비밀번호"
+                            placeholder="비밀번호 입력"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             autoComplete="current-password"
