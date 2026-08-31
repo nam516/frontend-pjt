@@ -18,24 +18,24 @@ export default defineConfig({
         proxy: {
             // /auth 추가 (login, refresh, logout, signup 전부 포함)
             "/auth": {
-                target: "http://localhost:8080",
+                target: "http://localhost:8081",
                 changeOrigin: true,
                 secure: false,
             },
             // OAuth2 로그인 시작
             "/oauth2/authorization": {
-                target: "http://localhost:8080",
+                target: "http://localhost:8081",
                 changeOrigin: true,
                 secure: false,
             },
             // OAuth2 콜백
             "/login/oauth2/code": {
-                target: "http://localhost:8080",
+                target: "http://localhost:8081",
                 changeOrigin: true,
                 secure: false,
             },
             "/api": {
-                target: "http://localhost:8080",
+                target: "http://localhost:8081",
                 changeOrigin: true,
                 secure: false,
             },

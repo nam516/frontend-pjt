@@ -21,7 +21,7 @@ export default function LoginPage() {
             setLoading(true);
             // loginApi 내부에서 tokenStore에 저장까지 해줌
             await loginApi({ loginId, password });
-            window.location.replace("/main");
+            window.location.replace("/projects");
         } catch (err) {
             // extractApiErrorMsg: 항상 string 반환 → React error #31 방지
             setErrorMsg(extractApiErrorMsg(err, "아이디 또는 비밀번호를 확인해주세요."));

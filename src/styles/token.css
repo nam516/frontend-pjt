@@ -44,6 +44,12 @@
     --sp-5: 24px;
 
     /* Typography */
+    /* 앱 전체가 쓰는 단 하나의 글꼴. 로그인 화면 기준. */
+    --font-sans:
+        ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic",
+        sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+
     --fs-sm: 14px;
     --fs-xs: 12px;
     --fs-lg: 22px;

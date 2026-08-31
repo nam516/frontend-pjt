@@ -3,12 +3,14 @@
 html, body { height: 100%; }
 body {
     margin: 0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    font-family: var(--font-sans);
     color: var(--c-text);
     background: var(--c-bg);
 }
 a { color: inherit; text-decoration: none; }
-button, input { font: inherit; }
+/* textarea·select 는 기본값이 브라우저 글꼴이라 반드시 함께 상속시켜야 한다.
+   (특히 textarea 는 다수 브라우저에서 monospace 로 떨어진다) */
+button, input, select, textarea, optgroup { font: inherit; color: inherit; }
 
 .page {
     min-height: 100vh;

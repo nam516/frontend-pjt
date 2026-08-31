@@ -25,22 +25,35 @@ type ApiResponse<T> = {
     error: { code: string; messageKey: string } | null;
 };
 
-/** ApiResponse에서 에러 메시지를 string으로 안전하게 추출 */
+/**
+ * 서버 응답에서 사람이 읽을 메시지를 뽑아낸다.
+ *
+ * 주의: AxiosError 도 Error 의 인스턴스라서 err.message 를 먼저 반환하면
+ * "Request failed with status code 400" 만 나오고 응답 본문을 못 읽는다.
+ * 그래서 응답 본문을 먼저 확인하고, 마지막에만 err.message 로 떨어진다.
+ */
 export function extractApiErrorMsg(err: unknown, fallback = "요청에 실패했어요."): string {
     if (!err || typeof err !== "object") return fallback;
-    if (err instanceof Error) return err.message;
 
     const e = err as Record<string, unknown>;
-    const data = (e?.response as Record<string, unknown>)?.data as
+    const data = (e.response as Record<string, unknown> | undefined)?.data as
         | Record<string, unknown>
         | undefined;
-
     const apiErr = data?.error as Record<string, unknown> | undefined;
+
+    // 입력값 검증 실패면 어떤 필드가 왜 틀렸는지 먼저 보여준다
+    const fieldErrors = apiErr?.fieldErrors as
+        | Array<{ field?: string; message?: string }>
+        | undefined;
+    if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+        return fieldErrors.map((f) => `${f.field} : ${f.message}`).join("\n");
+    }
+
     if (typeof apiErr?.messageKey === "string") return apiErr.messageKey;
     if (typeof apiErr?.code === "string") return `오류 코드: ${apiErr.code}`;
-
     if (typeof data?.message === "string") return data.message;
 
+    if (err instanceof Error && err.message) return err.message;
     return fallback;
 }
 
