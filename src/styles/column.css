@@ -1,0 +1,36 @@
+/* src/styles/column.css — 설정 탭의 보드 컬럼 관리 (B5) */
+
+.colm-row { gap: var(--sp-1); }
+
+.colm-row__input {
+    flex: 0 1 240px;
+    padding: 6px 10px;
+}
+
+.colm-row__first {
+    background: var(--c-accent-soft);
+    color: var(--c-accent-text);
+}
+
+.field__input.colm-row__cat {
+    width: auto;
+    padding: 6px 8px;
+    font-size: var(--fs-xs);
+}
+
+.btn--sm.colm-row__icon { padding: 0 12px; }
+
+.colm-add {
+    display: flex;
+    gap: var(--sp-1);
+    margin-top: var(--sp-2);
+}
+
+.colm-add__name { flex: 1; min-width: 0; }
+
+.field__input.colm-add__cat { width: auto; flex: none; }
+
+@media (max-width: 720px) {
+    .colm-row { flex-wrap: wrap; }
+    .colm-add { flex-wrap: wrap; }
+}

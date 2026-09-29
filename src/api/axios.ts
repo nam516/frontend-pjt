@@ -1,5 +1,9 @@
 // src/api/axios.ts
-import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
+import axios, {
+    AxiosError,
+    type AxiosResponse,
+    type InternalAxiosRequestConfig,
+} from "axios";
 import { tokenStore } from "../store/auth";
 
 const api = axios.create({
@@ -7,14 +11,21 @@ const api = axios.create({
     withCredentials: true, // ← HttpOnly 쿠키 자동 전송을 위해 필수
 });
 
-type RetryableConfig = AxiosRequestConfig & { _retry?: boolean };
+/**
+ * 401 로 한 번 재시도한 요청인지 표시해 둔다. 이 표시가 없으면
+ * refresh 도 401 을 받는 순간 무한히 재시도한다.
+ *
+ * <p>axios 가 인터셉터에 넘겨주는 설정은 {@code InternalAxiosRequestConfig} 라
+ * {@code headers} 가 항상 채워져 있는 {@code AxiosHeaders} 다. 그래서 헤더를 넣을 때
+ * 캐스팅 없이 {@code headers.set(...)} 을 쓸 수 있다.
+ */
+type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
 // request: access token 첨부
 api.interceptors.request.use((config) => {
     const token = tokenStore.getAccessToken();
     if (token) {
-        config.headers = config.headers ?? {};
-        (config.headers as any).Authorization = `Bearer ${token}`;
+        config.headers.set("Authorization", `Bearer ${token}`);
     }
     return config;
 });
@@ -64,8 +75,7 @@ api.interceptors.response.use(
             return new Promise((resolve, reject) => {
                 queue.push((newToken) => {
                     if (!newToken) return reject(error);
-                    original.headers = original.headers ?? {};
-                    (original.headers as any).Authorization = `Bearer ${newToken}`;
+                    original.headers.set("Authorization", `Bearer ${newToken}`);
                     resolve(api(original));
                 });
             });
@@ -86,8 +96,7 @@ api.interceptors.response.use(
 
             flushQueue(newAccessToken);
 
-            original.headers = original.headers ?? {};
-            (original.headers as any).Authorization = `Bearer ${newAccessToken}`;
+            original.headers.set("Authorization", `Bearer ${newAccessToken}`);
             return api(original);
 
         } catch (refreshError) {

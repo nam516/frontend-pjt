@@ -1,10 +1,11 @@
+import { useRef } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Avatar from "./Avatar";
 import IssueTypeIcon from "./IssueTypeIcon";
 import PriorityBadge from "./PriorityBadge";
 import type { IssueCard as IssueCardType } from "@/types/issue";
-import { formatDate } from "@/utils/format";
+import { formatDate, todayISODate } from "@/utils/format";
 
 type Props = {
     issue: IssueCardType;
@@ -18,17 +19,33 @@ export default function IssueCard({ issue, onOpen }: Props) {
         data: { type: "issue", issue },
     });
 
-    const overdue =
-        issue.dueDate != null && new Date(issue.dueDate) < new Date(new Date().toDateString());
+    // 마감일은 날짜만 있는 값(YYYY-MM-DD)이다. Date 로 바꾸면 UTC 자정으로
+    // 해석돼 시간대에 따라 하루씩 어긋난다. 문자열끼리 비교한다.
+    const overdue = issue.dueDate != null && issue.dueDate < todayISODate();
+
+    // 카드를 조금만 끌어도 브라우저는 마지막에 click 을 한 번 더 쏜다.
+    // 그대로 두면 옮기자마자 상세 모달이 열린다. 누른 지점에서 얼마나
+    // 움직였는지를 재서, 드래그였으면 여는 동작을 건너뛴다.
+    const pressedAt = useRef<{ x: number; y: number } | null>(null);
+    const DRAG_SLOP = 5; // PointerSensor 의 activationConstraint 와 같은 값
 
     return (
         <article
             ref={setNodeRef}
             style={{ transform: CSS.Transform.toString(transform), transition }}
             className={`card-issue${isDragging ? " card-issue--dragging" : ""}`}
-            onClick={() => onOpen?.(issue)}
             {...attributes}
             {...listeners}
+            onPointerDown={(e) => {
+                pressedAt.current = { x: e.clientX, y: e.clientY };
+                listeners?.onPointerDown?.(e);
+            }}
+            onClick={(e) => {
+                const from = pressedAt.current;
+                pressedAt.current = null;
+                if (from && Math.hypot(e.clientX - from.x, e.clientY - from.y) >= DRAG_SLOP) return;
+                onOpen?.(issue);
+            }}
         >
             <p className="card-issue__title">{issue.title}</p>
 

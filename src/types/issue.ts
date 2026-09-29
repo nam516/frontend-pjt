@@ -52,6 +52,7 @@ export type IssueDetail = {
     assigneeName: string | null;
     reporterId: number;
     reporterName: string | null;
+    startDate: string | null;
     dueDate: string | null;
     position: number;
     fstRegDttm: string;
@@ -65,6 +66,7 @@ export type IssueCreateReq = {
     issueType?: IssueType;
     priority?: IssuePriority;
     assigneeId?: number;
+    startDate?: string;
     dueDate?: string;
 };
 
@@ -74,8 +76,10 @@ export type IssueUpdateReq = {
     issueType?: IssueType;
     priority?: IssuePriority;
     assigneeId?: number;
+    startDate?: string;
     dueDate?: string;
     clearAssignee?: boolean;
+    clearStartDate?: boolean;
     clearDueDate?: boolean;
 };
 
@@ -102,3 +106,42 @@ export const PRIORITY_LABEL: Record<IssuePriority, string> = {
 
 export const ISSUE_TYPES: IssueType[] = ["TASK", "BUG", "STORY"];
 export const PRIORITIES: IssuePriority[] = ["LOWEST", "LOW", "MEDIUM", "HIGH", "HIGHEST"];
+
+/** 이슈 댓글 — 백엔드 IssueCommentResDTO.Item (로드맵 B3). canEdit / canDelete 는 나 기준이다. */
+export type IssueComment = {
+    id: number;
+    issueId: number;
+    authorId: number;
+    authorName: string | null;
+    content: string;
+    fstRegDttm: string;
+    lastModDttm: string;
+    edited: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+};
+
+export type ActivityAction = "CREATED" | "UPDATED" | "MOVED" | "DELETED" | "COMMENTED";
+
+export type ActivityField =
+    | "TITLE"
+    | "DESCRIPTION"
+    | "TYPE"
+    | "PRIORITY"
+    | "ASSIGNEE"
+    | "START_DATE"
+    | "DUE_DATE"
+    | "STATUS";
+
+/** 활동 기록 한 줄 — 백엔드 ActivityResDTO.Item (로드맵 B4). 값은 기록 시점 그대로다. */
+export type Activity = {
+    id: number;
+    targetLabel: string | null;
+    actorId: number;
+    actorName: string | null;
+    action: ActivityAction;
+    field: ActivityField | null;
+    oldValue: string | null;
+    newValue: string | null;
+    fstRegDttm: string;
+};

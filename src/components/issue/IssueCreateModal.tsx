@@ -1,7 +1,10 @@
 import { useState } from "react";
 import Modal from "@/components/common/Modal";
+import AssigneeSelect from "./AssigneeSelect";
 import { createIssue } from "@/api/issue";
-import { extractApiErrorMsg } from "@/api/auth";
+import { describeApiError } from "@/api/common";
+import { ISSUE_ERROR_MESSAGES } from "@/constants/issueMessages";
+import { scheduleError } from "@/utils/schedule";
 import {
     ISSUE_TYPES,
     ISSUE_TYPE_LABEL,
@@ -12,11 +15,15 @@ import {
     type IssueType,
 } from "@/types/issue";
 import type { BoardColumn } from "@/types/issue";
+import type { ProjectMember } from "@/types/project";
 
 type Props = {
     projectId: number;
     columns: BoardColumn[];
     defaultColumnId: number;
+    /** 담당자 선택지. 아직 못 읽었으면 null */
+    members: ProjectMember[] | null;
+    membersError: string | null;
     onClose: () => void;
     onCreated: (issue: IssueDetail) => void;
 };
@@ -25,19 +32,26 @@ export default function IssueCreateModal({
     projectId,
     columns,
     defaultColumnId,
+    members,
+    membersError,
     onClose,
     onCreated,
 }: Props) {
-    const [columnId, setColumnId] = useState(defaultColumnId);
+    // 이슈는 첫 컬럼(할 일)에서만 만든다(서버도 I005 로 막는다). 부르는 쪽이 첫 컬럼 id 를 넘긴다.
+    const columnId = defaultColumnId;
+    const columnName = columns.find((c) => c.id === columnId)?.name ?? "";
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [issueType, setIssueType] = useState<IssueType>("TASK");
     const [priority, setPriority] = useState<IssuePriority>("MEDIUM");
+    const [startDate, setStartDate] = useState("");
     const [dueDate, setDueDate] = useState("");
+    const [assigneeId, setAssigneeId] = useState<number | null>(null);
     const [saving, setSaving] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const canSubmit = title.trim().length > 0 && !saving;
+    const dateError = scheduleError(startDate, dueDate);
+    const canSubmit = title.trim().length > 0 && !saving && !dateError;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,11 +67,13 @@ export default function IssueCreateModal({
                     description: description.trim() || undefined,
                     issueType,
                     priority,
+                    assigneeId: assigneeId ?? undefined,
+                    startDate: startDate || undefined,
                     dueDate: dueDate || undefined,
                 })
             );
         } catch (err) {
-            setErrorMsg(extractApiErrorMsg(err, "이슈를 만들지 못했어요."));
+            setErrorMsg(describeApiError(err, ISSUE_ERROR_MESSAGES, "이슈를 만들지 못했어요."));
         } finally {
             setSaving(false);
         }
@@ -103,16 +119,14 @@ export default function IssueCreateModal({
                 <div className="field-row">
                     <div className="field">
                         <label className="field__label" htmlFor="columnId">상태</label>
-                        <select
+                        <input
                             id="columnId"
                             className="field__input"
-                            value={columnId}
-                            onChange={(e) => setColumnId(Number(e.target.value))}
-                        >
-                            {columns.map((c) => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
+                            value={columnName}
+                            disabled
+                            readOnly
+                        />
+                        <p className="field__hint">새 이슈는 첫 컬럼에서 시작합니다.</p>
                     </div>
 
                     <div className="field">
@@ -146,16 +160,44 @@ export default function IssueCreateModal({
                     </div>
 
                     <div className="field">
+                        <label className="field__label" htmlFor="assigneeId">담당자</label>
+                        <AssigneeSelect
+                            id="assigneeId"
+                            members={members}
+                            membersError={membersError}
+                            value={assigneeId}
+                            disabled={saving}
+                            onChange={setAssigneeId}
+                        />
+                    </div>
+                </div>
+
+                <div className="field-row">
+                    <div className="field">
+                        <label className="field__label" htmlFor="startDate">시작일</label>
+                        <input
+                            id="startDate"
+                            type="date"
+                            className="field__input"
+                            value={startDate}
+                            max={dueDate || undefined}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="field">
                         <label className="field__label" htmlFor="dueDate">마감일</label>
                         <input
                             id="dueDate"
                             type="date"
                             className="field__input"
                             value={dueDate}
+                            min={startDate || undefined}
                             onChange={(e) => setDueDate(e.target.value)}
                         />
                     </div>
                 </div>
+                {dateError && <p className="field__hint idate-error">{dateError}</p>}
 
                 <div className="field">
                     <label className="field__label" htmlFor="description">설명</label>

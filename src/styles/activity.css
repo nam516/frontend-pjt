@@ -1,0 +1,96 @@
+/* src/styles/activity.css — 이슈 상세의 댓글/활동 탭과 활동 목록 (B4). token.css 변수만. */
+
+.idet-tabs {
+    display: flex;
+    gap: var(--sp-1);
+    margin-top: var(--sp-4);
+    border-bottom: 1px solid var(--c-border);
+}
+
+.idet-tabs__tab {
+    padding: 8px 10px;
+    margin-bottom: -1px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    color: var(--c-muted);
+    cursor: pointer;
+}
+
+.idet-tabs__tab:hover { color: var(--c-text); }
+
+.idet-tabs__tab--active {
+    color: var(--c-text);
+    border-bottom-color: var(--c-primary);
+}
+
+.act-note {
+    margin: var(--sp-2) 0;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+}
+
+.act-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin: var(--sp-2) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.act {
+    display: flex;
+    gap: 10px;
+}
+
+.act__body { flex: 1; min-width: 0; }
+
+.act__text {
+    margin: 2px 0 0;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+}
+
+.act__time {
+    margin-left: var(--sp-1);
+    font-size: 11px;
+    color: var(--c-muted);
+}
+
+.act__change {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 0;
+    font-size: var(--fs-xs);
+}
+
+.act__from,
+.act__to {
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+}
+
+.act__from { color: var(--c-muted); text-decoration: line-through; }
+.act__to   { color: var(--c-text); font-weight: var(--fw-bold); }
+.act__arrow { color: var(--c-muted); }
+
+.act__quote {
+    margin: 4px 0 0;
+    padding: 6px 10px;
+    border-left: 3px solid var(--c-border);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* 탭 아래에 들어가는 댓글 영역은 탭이 위 여백을 대신한다 */
+.idet-tabs + .cmt-section { margin-top: var(--sp-2); }

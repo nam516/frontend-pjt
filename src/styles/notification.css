@@ -1,0 +1,176 @@
+/* src/styles/notification.css — 상단 바 종 아이콘과 알림 목록 (B20). token.css 변수만. */
+
+.bell { position: relative; }
+
+.bell__btn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    background: var(--c-surface);
+    color: var(--c-text);
+    cursor: pointer;
+
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bell__btn:hover,
+.bell__btn--open {
+    background: var(--c-accent-soft);
+    border-color: var(--c-accent);
+    color: var(--c-accent-text);
+}
+
+.bell__badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+
+    border: 2px solid var(--c-google-bg);
+    border-radius: 999px;
+    background: var(--c-error-text);
+
+    font-size: 10px;
+    font-weight: var(--fw-black);
+    line-height: 14px;
+    text-align: center;
+    color: var(--c-on-accent);
+}
+
+.bell__panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 60;
+
+    width: 380px;
+    max-width: calc(100vw - 32px);
+
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    background: var(--c-google-bg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.bell__head {
+    display: flex;
+    align-items: center;
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 1px solid var(--c-border);
+}
+
+.bell__title {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-black);
+}
+
+.bell__spacer { flex: 1; }
+
+.bell__readall {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    color: var(--c-accent-text);
+    cursor: pointer;
+}
+
+.bell__readall:hover:not(:disabled) { background: var(--c-accent-soft); }
+.bell__readall:disabled { color: var(--c-muted); cursor: default; }
+
+.bell__body {
+    max-height: min(70vh, 480px);
+    overflow-y: auto;
+}
+
+.bell__note {
+    margin: 0;
+    padding: var(--sp-5) var(--sp-3);
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+    color: var(--c-muted);
+    text-align: center;
+}
+
+.bell__item {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    padding: var(--sp-2) var(--sp-3);
+
+    border: none;
+    border-bottom: 1px solid var(--c-border);
+    background: transparent;
+
+    text-align: left;
+    cursor: pointer;
+}
+
+.bell__item:last-child { border-bottom: none; }
+.bell__item:hover { background: var(--c-bg); }
+.bell__item--unread { background: var(--c-accent-soft); }
+.bell__item--unread:hover { background: var(--c-accent-soft); }
+
+.bell__dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: transparent;
+}
+
+.bell__item--unread .bell__dot { background: var(--c-accent); }
+
+.bell__text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.bell__line {
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--c-text);
+}
+
+.bell__key {
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--c-primary);
+    font-size: 11px;
+    font-weight: var(--fw-bold);
+    color: var(--c-on-accent);
+}
+
+.bell__change {
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+}
+
+.bell__change b { color: var(--c-text); }
+
+.bell__quote {
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bell__time {
+    font-size: 11px;
+    color: var(--c-muted);
+}

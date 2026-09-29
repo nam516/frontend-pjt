@@ -1,0 +1,103 @@
+/* src/styles/member.css — 프로젝트 멤버 섹션 전용 스타일 */
+
+/* =========================
+   초대 폼
+========================= */
+.member-form {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--sp-2);
+
+    margin-bottom: var(--sp-3);
+    padding: var(--sp-3);
+
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+}
+
+.member-form__id { flex: 1; min-width: 0; }
+
+.member-form__role { width: 130px; flex: none; }
+
+/* 버튼 높이를 입력칸에 맞춘다 (.field__input 은 11px 상하 패딩이다) */
+.member-form__submit { flex: none; height: 42px; }
+
+/* =========================
+   멤버 한 줄
+========================= */
+.member-row { gap: var(--sp-2); }
+
+.member-row__who {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.member-row__id {
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-row__me {
+    margin-left: 6px;
+    padding: 1px 6px;
+
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+
+    font-size: 11px;
+    font-weight: var(--fw-bold);
+    vertical-align: middle;
+}
+
+.member-row__joined {
+    font-size: 11px;
+    color: var(--c-muted);
+    white-space: nowrap;
+}
+
+/* .field__input 은 width:100% 라 줄 안에서는 폭을 따로 준다 */
+.member-row__role {
+    width: 110px;
+    flex: none;
+    padding: 7px 9px;
+    font-size: var(--fs-sm);
+}
+
+/* =========================
+   섹션 안내 / 오류
+========================= */
+.member-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-2);
+}
+
+.member-alert__close {
+    flex: none;
+    padding: 0 2px;
+
+    border: 0;
+    background: none;
+    color: inherit;
+
+    font-size: 16px;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+@media (max-width: 720px) {
+    .member-form {
+        flex-wrap: wrap;
+    }
+
+    .member-form__role { width: 110px; }
+
+    .member-row__joined { display: none; }
+}

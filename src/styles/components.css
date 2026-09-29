@@ -154,3 +154,25 @@
     color: #fff;
     border-color: rgba(0, 0, 0, 0.12);
 }
+
+/* =========================
+   Avatar (공용)
+   보드 카드와 멤버 목록 양쪽에서 쓴다.
+========================= */
+.avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+
+    border-radius: 50%;
+    color: #fff;
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    user-select: none;
+}
+
+.avatar--empty {
+    background: rgba(15, 23, 42, 0.07);
+    color: #94a3b8;
+    font-size: 11px;
+}

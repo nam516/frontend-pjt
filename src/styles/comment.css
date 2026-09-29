@@ -1,0 +1,83 @@
+/* src/styles/comment.css — 이슈 상세의 댓글 (B3). 색·간격·글꼴은 token.css 변수만. */
+
+.cmt-section { margin-top: var(--sp-4); }
+
+.cmt-section__note {
+    margin: 4px 0 var(--sp-2);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+}
+
+.cmt-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin: 0 0 var(--sp-2);
+    padding: 0;
+    list-style: none;
+}
+
+.cmt {
+    display: flex;
+    gap: 10px;
+}
+
+.cmt__body {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+    background: var(--c-surface);
+}
+
+.cmt__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-1);
+    margin-bottom: 4px;
+}
+
+.cmt__author {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+}
+
+.cmt__time {
+    font-size: 11px;
+    color: var(--c-muted);
+}
+
+.cmt__spacer { flex: 1; }
+
+.cmt__action {
+    padding: 0 2px;
+    border: none;
+    background: none;
+    font-size: 11px;
+    font-weight: var(--fw-bold);
+    color: var(--c-muted);
+    cursor: pointer;
+}
+
+.cmt__action:hover { color: var(--c-text); }
+.cmt__action--danger:hover { color: var(--c-error-text); }
+.cmt__action:disabled { opacity: 0.5; cursor: default; }
+
+.cmt__content {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.field__textarea.cmt__input { min-height: 64px; }
+
+.cmt__edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-1);
+    margin-top: var(--sp-1);
+}

@@ -36,6 +36,25 @@
     /* Focus */
     --focus: rgba(37, 99, 235, 0.25);
 
+    /* Accent — 사이드 메뉴·탭의 "지금 여기" 표시 */
+    --c-accent: #2563eb;
+    --c-accent-text: #1d4ed8;
+    --c-accent-soft: rgba(37, 99, 235, 0.09);
+    --c-on-accent: #ffffff; /* 색이 진한 배경 위의 글자 */
+
+    /* 프로젝트 아바타 (키 글자로 하나를 고른다) */
+    --c-pav-1: #6366f1;
+    --c-pav-2: #0ea5e9;
+    --c-pav-3: #10b981;
+    --c-pav-4: #f59e0b;
+    --c-pav-5: #ec4899;
+    --c-pav-6: #8b5cf6;
+
+    /* 보드 컬럼 점 — 이름이 잘 알려진 컬럼(테스트·보류·취소)은 category 색 대신 이것을 쓴다 */
+    --c-col-test: #8b5cf6;
+    --c-col-hold: #f59e0b;
+    --c-col-cancel: #94a3b8;
+
     /* Spacing */
     --sp-1: 8px;
     --sp-2: 12px;

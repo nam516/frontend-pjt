@@ -65,6 +65,22 @@
     color: var(--c-muted);
 }
 
+/* 새 틀(AppLayout + ProjectLayout) 안의 보드. 남은 높이를 전부 쓴다. */
+.board-page {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.board-toolbar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-5) 0;
+}
+
 /* =========================
    Columns
 ========================= */
@@ -73,10 +89,10 @@
     min-height: 0;
 
     display: flex;
-    align-items: flex-start;
+    align-items: stretch; /* 컬럼을 보드 높이만큼 세로로 늘린다 */
     gap: 14px;
 
-    padding: 20px 24px 28px;
+    padding: 14px 24px 24px;
     overflow-x: auto;
     overflow-y: hidden;
 }
@@ -84,7 +100,7 @@
 .bcol {
     display: flex;
     flex-direction: column;
-    flex: 0 0 300px;
+    flex: 0 0 256px;
 
     max-height: 100%;
     padding: 12px 10px 10px;
@@ -95,6 +111,11 @@
     box-shadow: var(--shadow-soft);
 
     transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* 드래그 중 이 카드가 갈 수 없는 컬럼 (한 칸씩만 이동) */
+.bcol--blocked {
+    opacity: 0.4;
 }
 
 .bcol--over {
@@ -119,6 +140,9 @@
 .bcol__dot--todo        { background: #94a3b8; }
 .bcol__dot--in_progress { background: #2563eb; }
 .bcol__dot--done        { background: #10b981; }
+.bcol__dot--test        { background: var(--c-col-test); }
+.bcol__dot--hold        { background: var(--c-col-hold); }
+.bcol__dot--cancel      { background: var(--c-col-cancel); }
 
 .bcol__name {
     margin: 0;
@@ -185,6 +209,12 @@
     cursor: pointer;
 
     transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* 카드 목록 안(카드 바로 뒤)에 들어가므로 목록의 gap 만 쓴다 */
+.bcol__body > .bcol__add {
+    flex: none;
+    margin-top: 0;
 }
 
 .bcol__add:hover {
@@ -306,23 +336,7 @@
 /* =========================
    Avatar
 ========================= */
-.avatar {
-    display: inline-grid;
-    place-items: center;
-    flex: none;
-
-    border-radius: 50%;
-    color: #fff;
-    font-weight: var(--fw-bold);
-    line-height: 1;
-    user-select: none;
-}
-
-.avatar--empty {
-    background: rgba(15, 23, 42, 0.07);
-    color: #94a3b8;
-    font-size: 11px;
-}
+/* .avatar 는 보드 밖(멤버 목록)에서도 쓰여 components.css 로 옮겼다. */
 
 /* =========================
    Spinner
@@ -453,6 +467,54 @@
 .idet__desc--empty { color: #94a3b8; }
 
 /* =========================
+   git 브랜치 이름 (B16)
+   code 태그는 base.css 의 `font: inherit` 대상이 아니라 그냥 두면 monospace 로 떨어진다.
+   글꼴은 --font-sans 하나로 통일돼 있으므로 상속시킨다 (invite.css 의 코드 줄과 같은 방식).
+========================= */
+.branch-box { margin-top: var(--sp-3); }
+
+.branch-box__row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+}
+
+.field__input.branch-box__prefix {
+    flex: none;
+    width: auto;
+    padding: 6px 8px;
+    font-size: var(--fs-xs);
+}
+
+.branch-box__name {
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px;
+
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    background: var(--c-bg);
+    color: var(--c-text);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    user-select: all;
+}
+
+.field__hint.branch-box__error { color: var(--c-error-text); }
+
+/* 시작일이 마감일보다 늦을 때 (이슈 생성·수정 모달) */
+.field__hint.idate-error {
+    margin: -8px 0 var(--sp-3);
+    color: var(--c-error-text);
+}
+
+/* =========================
    Toast
 ========================= */
 .toast {
@@ -503,4 +565,5 @@
     .board-top { padding: 12px 14px; }
     .field-row { grid-template-columns: 1fr; }
     .idet__meta { grid-template-columns: 80px 1fr; }
+    .branch-box__row { flex-wrap: wrap; }
 }

@@ -1,0 +1,131 @@
+/* src/styles/invite.css — 초대 코드 (발급 · 목록 · 코드로 참여) 전용 스타일 */
+
+/* =========================
+   섹션 머리말
+========================= */
+/* 아래 두 군데에 클래스를 겹쳐 쓴 이유:
+   invite.css 는 컴포넌트가 import 해서 project.css 보다 <b>먼저</b> 번들에 들어간다.
+   같은 자리끼리는 뒤에 오는 project.css 가 이기므로, .field__hint 의 margin 과
+   .col-row 의 border 단축 속성이 여기 값을 덮어쓴다. !important 대신 클래스를
+   하나 겹쳐 무게만 올린다. */
+.field__hint.invite-lead {
+    margin: -4px 0 var(--sp-2);
+}
+
+.invite-copied {
+    margin: 0 0 var(--sp-2);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+}
+
+/* =========================
+   발급 폼
+========================= */
+.invite-form {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--sp-2);
+
+    margin-bottom: var(--sp-3);
+    padding: var(--sp-3);
+
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+}
+
+.invite-form__field { flex: 1; min-width: 0; }
+
+/* 버튼 높이를 입력칸에 맞춘다 (.field__input 은 11px 상하 패딩이다) */
+.invite-form__submit { flex: none; height: 42px; }
+
+/* =========================
+   코드 한 줄
+========================= */
+.invite-row { gap: var(--sp-2); }
+
+/* 방금 발급한 줄. 목록이 길어졌을 때 눈으로 찾게 해 준다. */
+.col-row.invite-row--fresh {
+    border-color: rgba(37, 99, 235, 0.45);
+    box-shadow: 0 0 0 3px var(--focus);
+}
+
+/* code 태그는 base.css 의 `font: inherit` 대상이 아니라 그냥 두면 브라우저 기본
+   monospace 로 떨어진다. 글꼴은 --font-sans 하나로 통일돼 있으므로 상속시키고,
+   자릿수를 세기 쉽도록 자간과 굵기만 준다 (.field__input--mono 와 같은 방식). */
+.invite-row__code {
+    font: inherit;
+    font-weight: var(--fw-black);
+    font-size: 15px;
+    letter-spacing: 2px;
+
+    flex: none;
+    padding: 2px 0;
+    white-space: nowrap;
+}
+
+.invite-row__meta {
+    font-size: 11px;
+    color: var(--c-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================
+   코드 상태 배지
+   (project.css 의 .badge--todo 계열과 같은 방식으로 색만 얹는다)
+========================= */
+.invite-status { flex: none; }
+
+.invite-status--active    { background: rgba(16, 185, 129, 0.14); color: #047857; }
+.invite-status--expired   { background: rgba(100, 116, 139, 0.12); color: #475569; }
+.invite-status--revoked   { background: var(--c-error-bg); color: var(--c-error-text); }
+.invite-status--exhausted { background: rgba(217, 119, 6, 0.14); color: #b45309; }
+
+/* =========================
+   코드로 참여하기 (프로젝트 목록 화면)
+========================= */
+
+/* 미리보기 결과 — "무슨 프로젝트에 어떤 역할로" 를 확인시키는 칸 */
+.invite-preview {
+    margin-bottom: var(--sp-3);
+    padding: var(--sp-3);
+
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius);
+}
+
+.invite-preview__top {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    margin-bottom: var(--sp-1);
+}
+
+.invite-preview__name {
+    margin: 0;
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-black);
+}
+
+.invite-preview__role {
+    margin: var(--sp-1) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+}
+
+/* 쓸 수 없는 코드의 이유. 오류 색을 쓰되 .alert 와 달리 칸 안에 들어간다. */
+.invite-preview__blocked {
+    margin: var(--sp-2) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--c-error-text);
+}
+
+@media (max-width: 720px) {
+    .invite-form { flex-wrap: wrap; }
+    .invite-form__field { flex: 1 1 130px; }
+
+    .invite-row { flex-wrap: wrap; }
+    .invite-row__meta { display: none; }
+}

@@ -14,3 +14,424 @@
     border: 1px solid #e6e8ef;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
+
+/* =========================================================
+   앱 틀 — 상단 바 + 사이드 메뉴 + 본문 (AppLayout)
+   색·간격·글꼴은 token.css 변수만 쓴다.
+========================================================= */
+.shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+
+    background:
+        radial-gradient(1200px 800px at 15% -10%, #e9efff 0%, transparent 55%),
+        radial-gradient(900px 600px at 85% -5%, #ffe9f3 0%, transparent 50%),
+        linear-gradient(180deg, #f8fafc 0%, var(--c-bg) 100%);
+}
+
+/* ---------- 상단 바 ---------- */
+.topbar {
+    flex: none;
+    /* backdrop-filter 가 쌓임 맥락을 만들므로, 알림 목록(B20)이 아래 본문 위로 펼쳐지도록 층을 올린다.
+       좁은 화면의 사이드 메뉴(z 30)보다 위, 모달(z 100)보다 아래. */
+    position: relative;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+
+    height: 56px;
+    padding: 0 var(--sp-4);
+
+    background: var(--c-surface);
+    border-bottom: 1px solid var(--c-border);
+    backdrop-filter: blur(10px);
+}
+
+.topbar__brand {
+    font-size: 16px;
+    font-weight: var(--fw-black);
+    letter-spacing: -0.3px;
+}
+
+.topbar__spacer { flex: 1; }
+
+/* 넓은 화면에서는 사이드 메뉴가 늘 보이므로 숨긴다 */
+.topbar__menu {
+    display: none;
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* ---------- 몸통 ---------- */
+.shell__body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    position: relative;
+}
+
+/* 본문. 보드 탭은 이 높이를 그대로 물려받아 꽉 채우고(proj-layout--fill),
+   나머지 화면은 내용만큼 길어지며 여기서 스크롤된다. */
+.shell__main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+/* 본문이 flex 라 좌우 margin:auto 인 .app-main 이 내용 폭으로 줄어들지 않게 한다 */
+.app-main { width: 100%; }
+
+/* ---------- 사이드 메뉴 ---------- */
+.sidebar {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+
+    width: 248px;
+    padding: var(--sp-3) var(--sp-2) var(--sp-2);
+    overflow-y: auto;
+
+    background: var(--c-surface);
+    border-right: 1px solid var(--c-border);
+}
+
+.sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* 한 줄 항목 (전체 프로젝트, 프로젝트) */
+.sidebar__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    min-height: 40px;
+    padding: 6px 10px;
+    border-radius: 10px;
+
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-regular);
+    color: var(--c-text);
+
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar__item:hover { background: var(--c-bg); }
+
+.sidebar__item--active,
+.sidebar__item--active:hover {
+    background: var(--c-accent-soft);
+    color: var(--c-accent-text);
+    font-weight: var(--fw-bold);
+}
+
+.sidebar__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: none;
+
+    border-radius: 8px;
+    color: var(--c-muted);
+}
+
+.sidebar__item--active .sidebar__icon { color: var(--c-accent); }
+
+/* 섹션 (내 프로젝트) */
+.sidebar__section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: var(--sp-4);
+}
+
+.sidebar__section-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 6px 6px 10px;
+}
+
+.sidebar__label {
+    font-size: 11px;
+    font-weight: var(--fw-black);
+    letter-spacing: 0.6px;
+    color: var(--c-muted);
+}
+
+.sidebar__count {
+    min-width: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--c-bg);
+
+    font-size: 11px;
+    font-weight: var(--fw-bold);
+    line-height: 18px;
+    text-align: center;
+    color: var(--c-muted);
+}
+
+.sidebar__spacer { flex: 1; }
+
+.sidebar__icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--c-muted);
+    cursor: pointer;
+
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar__icon-btn:hover {
+    background: var(--c-accent-soft);
+    color: var(--c-accent-text);
+}
+
+/* 프로젝트 아바타 — 키 앞 두 글자 */
+.pav {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: none;
+
+    border-radius: 8px;
+
+    font-size: 11px;
+    font-weight: var(--fw-black);
+    letter-spacing: 0.3px;
+    color: var(--c-on-accent);
+}
+
+.pav--1 { background: var(--c-pav-1); }
+.pav--2 { background: var(--c-pav-2); }
+.pav--3 { background: var(--c-pav-3); }
+.pav--4 { background: var(--c-pav-4); }
+.pav--5 { background: var(--c-pav-5); }
+.pav--6 { background: var(--c-pav-6); }
+
+.sidebar__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.sidebar__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar__key {
+    font-size: 11px;
+    font-weight: var(--fw-regular);
+    color: var(--c-muted);
+}
+
+.sidebar__note {
+    margin: 4px 0;
+    padding: 0 10px;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+}
+
+.sidebar__retry {
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    text-decoration: underline;
+    color: var(--c-text);
+    cursor: pointer;
+}
+
+.sidebar__empty {
+    margin: 2px 4px;
+    padding: 10px;
+
+    border: 1px dashed var(--c-border);
+    border-radius: 10px;
+    background: transparent;
+
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    cursor: pointer;
+}
+
+.sidebar__empty:hover { color: var(--c-accent-text); border-color: var(--c-accent); }
+
+/* 맨 아래 — 초대 코드로 참여 */
+.sidebar__foot {
+    margin-top: auto;
+    padding-top: var(--sp-3);
+}
+
+.sidebar__join {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px;
+
+    border: 1px dashed var(--c-border);
+    border-radius: 12px;
+    background: transparent;
+
+    text-align: left;
+    cursor: pointer;
+
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.sidebar__join:hover {
+    background: var(--c-accent-soft);
+    border-color: var(--c-accent);
+}
+
+.sidebar__join-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: none;
+
+    border-radius: 8px;
+    background: var(--c-accent-soft);
+    color: var(--c-accent);
+}
+
+.sidebar__join-title {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    color: var(--c-text);
+}
+
+.sidebar__join-desc {
+    font-size: 11px;
+    color: var(--c-muted);
+}
+
+.shell__scrim { display: none; }
+
+/* =========================================================
+   프로젝트 머리글 + 가로 탭 (ProjectLayout)
+========================================================= */
+.proj-head {
+    flex: none;
+    padding: var(--sp-4) var(--sp-5) 0;
+    border-bottom: 1px solid var(--c-border);
+}
+
+.proj-head__title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    min-width: 0;
+}
+
+.proj-head__name {
+    margin: 0;
+    min-width: 0;
+
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-black);
+    letter-spacing: -0.4px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.proj-tabs {
+    display: flex;
+    gap: var(--sp-1);
+    margin-top: var(--sp-2);
+}
+
+.proj-tabs__tab {
+    padding: 10px 12px;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    color: var(--c-muted);
+}
+
+.proj-tabs__tab:hover { color: var(--c-text); }
+
+.proj-tabs__tab--active {
+    color: var(--c-text);
+    border-bottom-color: var(--c-primary);
+}
+
+/* 보드 탭: 본문 높이를 꽉 채운다 */
+.proj-layout--fill {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.proj-layout--fill .proj-layout__body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================================================
+   좁은 화면: 사이드 메뉴를 접고 ☰ 로 연다
+========================================================= */
+@media (max-width: 900px) {
+    .topbar__menu { display: inline-grid; place-items: center; }
+
+    .sidebar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 30;
+
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+        box-shadow: var(--shadow);
+
+        /* 본문 위에 떠 있으므로 반투명(--c-surface)이면 뒤의 글자가 비친다 */
+        background: var(--c-bg);
+    }
+
+    .sidebar--open { transform: translateX(0); }
+
+    .shell__scrim {
+        display: block;
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        background: var(--c-border);
+    }
+
+    .proj-head { padding: var(--sp-3) var(--sp-3) 0; }
+}

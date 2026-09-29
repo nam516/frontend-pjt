@@ -5,9 +5,12 @@ import MainPage from "@/pages/MainPage";
 import SignupPage from "@/pages/SignupPage";
 import OAuth2RedirectPage from "@/pages/OAuth2RedirectPage";
 import ProjectListPage from "@/pages/ProjectListPage";
-import ProjectDetailPage from "@/pages/ProjectDetailPage";
+import ProjectMembersPage from "@/pages/ProjectMembersPage";
+import ProjectSettingsPage from "@/pages/ProjectSettingsPage";
 import BoardPage from "@/pages/BoardPage";
 import RequireAuth from "@/auth/RequireAuth";
+import AppLayout from "@/components/layout/AppLayout";
+import ProjectLayout from "@/components/layout/ProjectLayout";
 import { tokenStore } from "@/store/auth";
 
 function HomeRedirect() {
@@ -24,31 +27,24 @@ export default function App() {
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/oauth2/redirect" element={<OAuth2RedirectPage />} />
 
+                {/* 로그인 이후 화면 — 상단 바 + 사이드 메뉴 틀(AppLayout) 안에 그린다 */}
                 <Route
-                    path="/projects"
                     element={
                         <RequireAuth>
-                            <ProjectListPage />
+                            <AppLayout />
                         </RequireAuth>
                     }
-                />
-                <Route
-                    path="/projects/:projectId"
-                    element={
-                        <RequireAuth>
-                            <ProjectDetailPage />
-                        </RequireAuth>
-                    }
-                />
+                >
+                    <Route path="/projects" element={<ProjectListPage />} />
 
-                <Route
-                    path="/projects/:projectId/board"
-                    element={
-                        <RequireAuth>
-                            <BoardPage />
-                        </RequireAuth>
-                    }
-                />
+                    {/* 프로젝트 안 — 머리글 + 탭(ProjectLayout). 들어오면 바로 보드. */}
+                    <Route path="/projects/:projectId" element={<ProjectLayout />}>
+                        <Route index element={<Navigate to="board" replace />} />
+                        <Route path="board" element={<BoardPage />} />
+                        <Route path="members" element={<ProjectMembersPage />} />
+                        <Route path="settings" element={<ProjectSettingsPage />} />
+                    </Route>
+                </Route>
 
                 <Route
                     path="/main"

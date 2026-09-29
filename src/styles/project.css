@@ -212,6 +212,13 @@
     font-weight: var(--fw-bold);
 }
 
+.empty__actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+}
+
 .empty__desc {
     margin: 0 0 20px;
     font-size: var(--fs-sm);

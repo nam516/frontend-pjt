@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import Modal from "@/components/common/Modal";
 import Spinner from "@/components/common/Spinner";
 import Avatar from "./Avatar";
+import AssigneeSelect from "./AssigneeSelect";
+import BranchNameBox from "./BranchNameBox";
+import IssueCommentSection from "./IssueCommentSection";
+import IssueActivityList from "./IssueActivityList";
+import "@/styles/activity.css";
 import IssueTypeIcon from "./IssueTypeIcon";
 import PriorityBadge from "./PriorityBadge";
 import { deleteIssue, fetchIssue, updateIssue } from "@/api/issue";
 import { extractApiErrorMsg } from "@/api/auth";
+import { describeApiError } from "@/api/common";
+import { ISSUE_ERROR_MESSAGES } from "@/constants/issueMessages";
+import { scheduleError } from "@/utils/schedule";
 import {
     ISSUE_TYPES,
     ISSUE_TYPE_LABEL,
@@ -16,10 +24,14 @@ import {
     type IssueType,
 } from "@/types/issue";
 import { formatDate, formatRelative } from "@/utils/format";
+import type { ProjectMember } from "@/types/project";
 
 type Props = {
     issueId: number;
     canEdit: boolean;
+    /** 담당자 선택지. 아직 못 읽었으면 null */
+    members: ProjectMember[] | null;
+    membersError: string | null;
     onClose: () => void;
     /** 저장 성공 — 보드를 갱신하기 위해 부모에게 알린다 */
     onSaved: (issue: IssueDetail) => void;
@@ -35,6 +47,8 @@ type State =
 export default function IssueDetailModal({
     issueId,
     canEdit,
+    members,
+    membersError,
     onClose,
     onSaved,
     onDeleted,
@@ -43,13 +57,16 @@ export default function IssueDetailModal({
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [tab, setTab] = useState<"comments" | "activity">("comments");
 
     // 편집 폼
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [issueType, setIssueType] = useState<IssueType>("TASK");
     const [priority, setPriority] = useState<IssuePriority>("MEDIUM");
+    const [startDate, setStartDate] = useState("");
     const [dueDate, setDueDate] = useState("");
+    const [assigneeId, setAssigneeId] = useState<number | null>(null);
 
     /** 서버 값으로 폼을 채운다. 수정 취소 시에도 같은 함수를 쓴다. */
     const resetForm = (issue: IssueDetail) => {
@@ -57,8 +74,13 @@ export default function IssueDetailModal({
         setDescription(issue.description ?? "");
         setIssueType(issue.issueType);
         setPriority(issue.priority);
+        setStartDate(issue.startDate ?? "");
         setDueDate(issue.dueDate ?? "");
+        setAssigneeId(issue.assigneeId);
     };
+
+    /** 시작일이 마감일보다 늦으면 문장, 아니면 null. 저장 버튼을 잠그는 데 쓴다. */
+    const dateError = scheduleError(startDate, dueDate);
 
     useEffect(() => {
         let alive = true;
@@ -82,17 +104,30 @@ export default function IssueDetailModal({
     }, [issueId]);
 
     const handleSave = async () => {
-        if (state.status !== "ready" || !title.trim()) return;
+        if (state.status !== "ready" || !title.trim() || dateError) return;
+
+        // 담당자는 "바꿨을 때만" 보낸다. 안 건드렸는데 매번 같은 id 를 보내면, 그 사이
+        // 담당자가 프로젝트에서 빠진 경우 제목만 고쳐도 담당자 검증(I003)에 걸려 저장이 막힌다.
+        const current = state.issue.assigneeId;
+        const assigneePatch =
+            assigneeId === current
+                ? {}
+                : assigneeId == null
+                  ? { clearAssignee: true }
+                  : { assigneeId };
 
         setErrorMsg(null);
         setSaving(true);
         try {
             const saved = await updateIssue(issueId, {
+                ...assigneePatch,
                 title: title.trim(),
                 description: description.trim(),
                 issueType,
                 priority,
                 // 값을 지우는 것과 "그대로 두는 것"은 다르다. 서버가 구분할 수 있게 플래그로 보낸다.
+                startDate: startDate || undefined,
+                clearStartDate: startDate ? undefined : true,
                 dueDate: dueDate || undefined,
                 clearDueDate: dueDate ? undefined : true,
             });
@@ -101,7 +136,7 @@ export default function IssueDetailModal({
             setEditing(false);
             onSaved(saved);
         } catch (err) {
-            setErrorMsg(extractApiErrorMsg(err, "저장하지 못했어요."));
+            setErrorMsg(describeApiError(err, ISSUE_ERROR_MESSAGES, "저장하지 못했어요."));
         } finally {
             setSaving(false);
         }
@@ -146,7 +181,7 @@ export default function IssueDetailModal({
                             <button
                                 className="btn btn--primary"
                                 onClick={handleSave}
-                                disabled={saving || !title.trim()}
+                                disabled={saving || !title.trim() || dateError !== null}
                             >
                                 {saving ? "저장 중..." : "저장"}
                             </button>
@@ -221,16 +256,45 @@ export default function IssueDetailModal({
                             </div>
 
                             <div className="field">
-                                <label className="field__label" htmlFor="d-due">마감일</label>
-                                <input
-                                    id="d-due"
-                                    type="date"
-                                    className="field__input"
-                                    value={dueDate}
-                                    onChange={(e) => setDueDate(e.target.value)}
+                                <label className="field__label" htmlFor="d-assignee">담당자</label>
+                                <AssigneeSelect
+                                    id="d-assignee"
+                                    members={members}
+                                    membersError={membersError}
+                                    value={assigneeId}
+                                    currentName={issue.assigneeName}
+                                    disabled={saving}
+                                    onChange={setAssigneeId}
                                 />
-                                <p className="field__hint">비워두면 마감일이 지워집니다.</p>
                             </div>
+
+                            <div className="field-row">
+                                <div className="field">
+                                    <label className="field__label" htmlFor="d-start">시작일</label>
+                                    <input
+                                        id="d-start"
+                                        type="date"
+                                        className="field__input"
+                                        value={startDate}
+                                        max={dueDate || undefined}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="field">
+                                    <label className="field__label" htmlFor="d-due">마감일</label>
+                                    <input
+                                        id="d-due"
+                                        type="date"
+                                        className="field__input"
+                                        value={dueDate}
+                                        min={startDate || undefined}
+                                        onChange={(e) => setDueDate(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <p className={`field__hint${dateError ? " idate-error" : ""}`}>
+                                {dateError ?? "비워두면 그 날짜가 지워집니다."}
+                            </p>
 
                             <div className="field">
                                 <label className="field__label" htmlFor="d-desc">설명</label>
@@ -281,6 +345,11 @@ export default function IssueDetailModal({
                                     {issue.reporterName ?? "-"}
                                 </span>
 
+                                <span className="idet__label">시작일</span>
+                                <span className="idet__value">
+                                    {issue.startDate ? formatDate(issue.startDate) : "없음"}
+                                </span>
+
                                 <span className="idet__label">마감일</span>
                                 <span className="idet__value">
                                     {issue.dueDate ? formatDate(issue.dueDate) : "없음"}
@@ -292,6 +361,14 @@ export default function IssueDetailModal({
                                 </span>
                             </div>
 
+                            {/* 종류가 바뀌면 기본 접두사도 바뀌어야 하므로 key 로 새로 만든다 */}
+                            <BranchNameBox
+                                key={issue.issueType}
+                                issueKey={issue.issueKey}
+                                title={issue.title}
+                                issueType={issue.issueType}
+                            />
+
                             <div className="field" style={{ marginTop: 16 }}>
                                 <label className="field__label">설명</label>
                                 <p
@@ -302,6 +379,34 @@ export default function IssueDetailModal({
                                     {issue.description || "설명이 없습니다."}
                                 </p>
                             </div>
+
+                            {/* 댓글 / 활동 탭 (B3 · B4). 로드맵대로 탭으로 구분한다. */}
+                            <div className="idet-tabs" role="tablist">
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={tab === "comments"}
+                                    className={`idet-tabs__tab${tab === "comments" ? " idet-tabs__tab--active" : ""}`}
+                                    onClick={() => setTab("comments")}
+                                >
+                                    댓글
+                                </button>
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={tab === "activity"}
+                                    className={`idet-tabs__tab${tab === "activity" ? " idet-tabs__tab--active" : ""}`}
+                                    onClick={() => setTab("activity")}
+                                >
+                                    활동
+                                </button>
+                            </div>
+
+                            {tab === "comments" ? (
+                                <IssueCommentSection issueId={issue.id} canWrite={canEdit} />
+                            ) : (
+                                <IssueActivityList issueId={issue.id} version={issue.lastModDttm} />
+                            )}
                         </>
                     )}
                 </>
